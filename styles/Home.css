@@ -100,7 +100,7 @@ ul li {
 
 .message.user {
   background: #d1ecf1;
-  text-align: right;
+  text-align: left;
 }
 
 .message.assistant {
