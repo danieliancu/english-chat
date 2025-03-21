@@ -137,7 +137,7 @@ function Chat({ course, goBack }) {
   return (
     <div className="chat-container">
       <button onClick={goBack} className="back-button">← Back</button>
-      <h1>{course} Chat</h1>
+      <h1>{course}</h1>
       <div className="chat-messages">
         {messages.map((msg, index) => (
           <div key={index} className={msg.role === "user" ? "message user" : "message assistant"}>
