@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import "../styles/Home.css";
+// pages/index.js
+import { useState, useEffect, useRef, useCallback } from "react";
 
 function Home() {
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -46,18 +46,8 @@ function Chat({ course, goBack }) {
   const messagesEndRef = useRef(null);
   const firstMessageRef = useRef(false);
 
-  useEffect(() => {
-    if (!firstMessageRef.current) {
-      generateNewSentence();
-      firstMessageRef.current = true;
-    }
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, showReport]);
-
-  const generateNewSentence = async () => {
+  // Memorizează funcția generateNewSentence pentru a evita recrearea ei la fiecare render.
+  const generateNewSentence = useCallback(async () => {
     setLoading(true);
     setAwaitingTranslation(true);
 
@@ -69,20 +59,33 @@ function Chat({ course, goBack }) {
       });
       const data = await res.json();
       if (data.reply && data.reply.content) {
-        setMessages(prev => [...prev, { role: "assistant", content: data.reply.content }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.reply.content }]);
       }
     } catch (error) {
       console.error("Error:", error);
     }
     setLoading(false);
-  };
+  }, [course]);
+
+  // Rulează generateNewSentence o singură dată, la montarea componentului
+  useEffect(() => {
+    if (!firstMessageRef.current) {
+      generateNewSentence();
+      firstMessageRef.current = true;
+    }
+  }, [generateNewSentence]);
+
+  // Derulează la finalul mesajelor pentru a aduce ultimul mesaj în vizibilitate
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, showReport]);
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const userMessage = { role: "user", content: input };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
@@ -94,11 +97,11 @@ function Chat({ course, goBack }) {
       });
       const data = await res.json();
       if (data.reply && data.reply.content) {
-        setMessages(prev => [...prev, { role: "assistant", content: data.reply.content }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.reply.content }]);
         setAwaitingTranslation(false);
         console.log("Raw Feedback:", data.reply.rawFeedback);
         if (data.reply.rawFeedback && data.reply.rawFeedback.trim() !== "") {
-          setFeedbacks(prev => [...prev, data.reply.rawFeedback.trim()]);
+          setFeedbacks((prev) => [...prev, data.reply.rawFeedback.trim()]);
         }
       }
     } catch (error) {
